@@ -10,20 +10,20 @@ def file_list(request, date=None):
     file_names = os.listdir(settings.FILES_PATH)
     if date != None:
         d = datetime.datetime.strptime(date, "%Y-%m-%d")
-        date = datetime.datetime.date(d)
+        date1 = datetime.datetime.date(d)
         for name in file_names:
             file_dict = {}
             file_dict['name'] = name
-            file_data = os.stat(settings.FILES_PATH + '/' + name)
+            file_data = os.stat(os.path.join(settings.FILES_PATH, name))
             file_dict['ctime'] = datetime.datetime.fromtimestamp(file_data.st_ctime)
             file_dict['mtime'] = datetime.datetime.fromtimestamp(file_data.st_mtime)
-            if datetime.date.fromtimestamp(file_data.st_ctime) == date:
+            if datetime.date.fromtimestamp(file_data.st_ctime) == date1:
                 file_listing.append(file_dict)
     else:
         for name in file_names:
             file_dict = {}
             file_dict['name'] = name
-            file_data = os.stat(settings.FILES_PATH + '/' + name)
+            file_data = os.stat(os.path.join(settings.FILES_PATH, name))
             file_dict['ctime'] = datetime.datetime.fromtimestamp(file_data.st_ctime)
             file_dict['mtime'] = datetime.datetime.fromtimestamp(file_data.st_mtime)
             file_listing.append(file_dict)
@@ -35,8 +35,11 @@ def file_list(request, date=None):
 
 
 def file_content(request, name):
-    with open(settings.FILES_PATH + '/' + name, 'r') as file:
-        content = file.read()
+    try:
+        with open(os.path.join(settings.FILES_PATH, name)) as file:
+            content = file.read()
+    except FileNotFoundError:
+        content = 'Такого файла нет!'
     return render(
         request,
         'file_content.html',
